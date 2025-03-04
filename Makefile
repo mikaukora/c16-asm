@@ -1,38 +1,45 @@
 # Commodore 16 Assembly Project Makefile
 # Using cc65 toolchain
 
-# Variables
+# Paths
 CC65_PATH = /usr/local/bin
 CC = $(CC65_PATH)/cc65
 CA = $(CC65_PATH)/ca65
 LD = $(CC65_PATH)/ld65
 EMULATOR = /usr/local/bin/xplus4
 
-PROGRAM = demo
-
 # Source files
-ASM_SOURCES = main.s
+ASM_SOURCES := $(wildcard *.s)
+PROGRAMS := $(filter-out basic_stub,$(basename $(ASM_SOURCES)))
 
+# Directories
 BUILD_DIR = build
 OUTPUT_DIR = output
 
+# Linker Configuration
 CONFIG = c16.cfg
 
-all: setup $(OUTPUT_DIR)/$(PROGRAM).prg
+# Build all programs
+all: setup $(patsubst %, $(OUTPUT_DIR)/%.prg, $(PROGRAMS))
 
 setup:
 	@mkdir -p $(BUILD_DIR)
 	@mkdir -p $(OUTPUT_DIR)
 
-# Compile assembly files
+# Compile BASIC stub once
+$(BUILD_DIR)/basic_stub.o: basic_stub.s
+	$(CA) -t c16 -o $@ $<
+
+# Compile each .s file into an object file (excluding the stub)
 $(BUILD_DIR)/%.o: %.s
 	$(CA) -t c16 -o $@ $<
 
-# Link object files to create PRG file
-$(OUTPUT_DIR)/$(PROGRAM).prg: $(patsubst %.s,$(BUILD_DIR)/%.o,$(ASM_SOURCES))
+# Link each object file with the BASIC stub
+$(OUTPUT_DIR)/%.prg: $(BUILD_DIR)/%.o $(BUILD_DIR)/basic_stub.o
 	$(LD) -o $@ -C $(CONFIG) $^
 
-run: $(OUTPUT_DIR)/$(PROGRAM).prg
+# Run a specific program
+run-%: $(OUTPUT_DIR)/%.prg
 	$(EMULATOR) -model c16 $<
 
 clean:

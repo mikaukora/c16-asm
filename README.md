@@ -8,9 +8,9 @@ To compile:
 
     make
 
-To run with Vice:
+To run main.s with Vice:
 
-    make run
+    make run-main
 
 Clean:
 
