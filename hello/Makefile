@@ -7,12 +7,13 @@ AS = $(CC65_HOME)/ca65
 LD = $(CC65_HOME)/ld65
 EMULATOR = /usr/local/bin/xplus4
 
-programs = hello.prg hello2.prg
+ASM_SOURCES := $(wildcard *.s)
+PROGRAMS := $(patsubst %.s, %.prg, $(ASM_SOURCES))
 
 OBJDIR := objdir
 
 .PHONY: all
-all: $(programs)
+all: $(PROGRAMS)
 
 %.o: %.s
 	$(AS) -t $(SYS) $< -o $@ -l $(*F).lst
